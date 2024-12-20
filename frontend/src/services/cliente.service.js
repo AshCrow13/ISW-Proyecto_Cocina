@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://146.83.198.35:1326//api"; // Ajusta según tu configuración
+const API_URL = "http://localhost:3000/api"; // Ajusta según tu configuración
 
 export async function getCliente() {
   try {
@@ -24,7 +24,7 @@ export async function createCliente(clienteData) {
 
 export async function updateCliente(id, clienteData) {
   try {
-    const { data } = await axios.put(`${API_URL}/cliente/${id}`, clienteData);
+    const { data } = await axios.put(`/cliente/${id}`, clienteData);
     return data;
   } catch (error) {
     console.error("Error al actualizar cliente:", error);
@@ -33,10 +33,9 @@ export async function updateCliente(id, clienteData) {
 }
 export async function deleteCliente(id) {
   try {
-    await axios.delete(`${API_URL}/cliente/${id}`);
+    await axios.delete(`/cliente/${id}`);
   } catch (error) {
-    const errorMessage = error.response?.data?.message || error.message;
-    console.error("Error al eliminar cliente:", errorMessage);
-    throw new Error(errorMessage);
+    console.error("Error al eliminar cliente:", error);
+    throw error;
   }
 }

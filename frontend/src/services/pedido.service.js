@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://146.83.198.35:1326/api";
+const API_URL = "http://localhost:3000/api";
 
 export const getPedidos = () => {
     return axios.get(`${API_URL}/pedido`);
@@ -17,20 +17,20 @@ export const getPedidos = () => {
 }
 export async function updatePedido(id, pedidoData) {
   try {
-      const { data } = await axios.put(`${API_URL}/pedido/${id}`, pedidoData);
-      return data;
+    const { data } = await axios.put(`${API_URL}/pedido/${id}`, pedidoData);
+    return data;
   } catch (error) {
-      console.error("Error al actualizar pedido", error.message);
-      throw error;
+    console.error("Error al actualizar pedido", error);
+    return null;
   }
 }
 
 export async function deletePedido(id) {
   try {
-    const response = await axios.delete(`${API_URL}/pedido/${id}`);
-    return response.data;
+    const { data } = await axios.delete(`${API_URL}/pedido/${id}`);
+    return data;
   } catch (error) {
     console.error("Error al eliminar pedido", error);
-    throw error;
+    return null;
   }
 }

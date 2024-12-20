@@ -1,11 +1,6 @@
 "use strict";
 import { EntitySchema } from "typeorm";
 
-const RolEnum = {
-    PENDIENTE: "Pendiente",
-    COMPLETO: "Completo"
-};
-
 const PedidoSchema = new EntitySchema({
     name: "Pedido",
     tableName: "pedido",
@@ -20,10 +15,9 @@ const PedidoSchema = new EntitySchema({
             nullable: true,
         },
         estado: {
-            type: "enum",
-            enum: Object.values(RolEnum),
-            nullable: false,
-            default: RolEnum.PENDIENTE, 
+            type: "varchar",
+            length: 50,
+            nullable: true,
         },
         total: {
             type: "decimal",
@@ -42,11 +36,7 @@ const PedidoSchema = new EntitySchema({
         empleadoID: { 
             type: "int",
             nullable: false,
-        },            
-        liberado: {
-                type: "boolean",
-                default: false, // Por defecto, los pedidos no están liberados
-            },
+        },
     },
     relations: {
         cliente: {
@@ -55,12 +45,10 @@ const PedidoSchema = new EntitySchema({
             joinColumn: { name: "clienteID" },
             onDelete: "SET NULL",
         },
-        plato: {
+        plato: { 
             target: "Plato",
-            type: "many-to-many",
-            joinTable: true, 
-            cascade: true,
-            onDelete: "CASCADE",
+            type: "many-to-one",
+            joinColumn: { name: "platoID" },  
         },
         empleado: {
             target: "Empleado",

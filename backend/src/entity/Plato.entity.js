@@ -29,7 +29,7 @@ const PlatoSchema = new EntitySchema({
             type: "boolean",
             nullable: false,
         }
-    },
+    }
 });
 
 export default PlatoSchema;

@@ -1,51 +1,30 @@
 import React, { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import { getTurnos, createTurno, updateTurno, deleteTurno } from "../services/turno.service";
+import { getTurnos, createTurno } from "../services/turno.service";
 import { getEmpleado } from "../services/empleado.service";
-import "../styles/Turnos.css";
+import "../styles/Turnos.css"; // Importa el archivo CSS
 
 function Turnos() {
   const [turnos, setTurnos] = useState([]);
   const [empleados, setEmpleados] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTurnos, setSelectedTurnos] = useState([]);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingTurnoID, setEditingTurnoID] = useState(null);
-  const [popupMessage, setPopupMessage] = useState(null);
-  const [popupVisible, setPopupVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [form, setForm] = useState({
     fecha: "",
     horaInicio: "",
     horaFin: "",
     empleadoID: "",
   });
-  const [isLoading, setIsLoading] = useState(true);
-  const showPopup = (message) => {
-    setPopupMessage(message);
-    setPopupVisible(true);
-    setTimeout(() => setPopupVisible(false), 2000); // Desaparece después de 2 segundos
-  };
-  
-  const hasConflict = (empleadoID, fecha) => {
-    return turnos.some(
-      (turno) => turno.fecha === fecha && turno.empleado?.empleadoID === parseInt(empleadoID)
-    );
-  };
-  
 
   useEffect(() => {
     async function fetchData() {
-      try {
-        setIsLoading(true);
-        const [turnosData, empleadosData] = await Promise.all([getTurnos(), getEmpleado()]);
-        setTurnos(turnosData);
-        setEmpleados(empleadosData);
-      } catch (error) {
-        console.error("Error al cargar datos:", error);
-      } finally {
-        setIsLoading(false);
-      }
+      const turnosData = await getTurnos();
+      setTurnos(turnosData);
+
+      const empleadosData = await getEmpleado();
+      setEmpleados(empleadosData);
     }
     fetchData();
   }, []);
@@ -55,18 +34,13 @@ function Turnos() {
     const formattedDate = date.toISOString().split("T")[0];
     const turnosForDate = turnos.filter((turno) => turno.fecha === formattedDate);
     setSelectedTurnos(turnosForDate);
-    setForm({ ...form, fecha: formattedDate }); // Predefine la fecha en el formulario
+    setIsModalVisible(true);
   };
 
-  const resetForm = () => {
-    setForm({
-      fecha: selectedDate ? selectedDate.toISOString().split("T")[0] : "",
-      horaInicio: "",
-      horaFin: "",
-      empleadoID: "",
-    });
-    setIsEditMode(false);
-    setEditingTurnoID(null);
+  const closeModal = () => {
+    setIsModalVisible(false);
+    setSelectedDate(null);
+    setSelectedTurnos([]);
   };
 
   const handleFormChange = (e) => {
@@ -76,88 +50,64 @@ function Turnos() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Validar coherencia de las horas
-    if (form.horaInicio >= form.horaFin) {
-      showPopup("La hora de inicio debe ser menor que la hora de fin.");
-      return;
-    }
-  
-    // Validar que el empleado no tenga más de un turno el mismo día
-    if (hasConflict(form.empleadoID, form.fecha)) {
-      showPopup("Este empleado ya tiene un turno asignado en esta fecha.");
-      return;
-    }
-  
+    const newTurno = {
+      fecha: form.fecha,
+      horaInicio: form.horaInicio,
+      horaFin: form.horaFin,
+      empleado: { empleadoID: parseInt(form.empleadoID) },
+    };
+
     try {
-      if (isEditMode) {
-        const updatedTurno = {
-          ...form,
-          empleado: { empleadoID: parseInt(form.empleadoID) },
-        };
-        await updateTurno(editingTurnoID, updatedTurno);
-        alert("Turno actualizado exitosamente");
-        setTurnos((prev) =>
-          prev.map((turno) => (turno.turnoID === editingTurnoID ? { ...turno, ...updatedTurno } : turno))
-        );
-      } else {
-        const newTurno = {
-          ...form,
-          empleado: { empleadoID: parseInt(form.empleadoID) },
-        };
-        const createdTurno = await createTurno(newTurno);
-        alert("Turno creado exitosamente");
-        setTurnos((prev) => [...prev, createdTurno]);
-      }
-      resetForm();
+      const createdTurno = await createTurno(newTurno);
+      alert("Turno creado exitosamente");
+      setTurnos((prev) => [...prev, createdTurno]);
+      setForm({
+        fecha: "",
+        horaInicio: "",
+        horaFin: "",
+        empleadoID: "",
+      });
     } catch (error) {
-      console.error("Error al guardar turno", error);
-      showPopup("Hubo un error al guardar el turno.");
+      console.error("Error al crear turno", error);
+      alert("Hubo un error al crear el turno");
     }
   };
-
-  const handleEditTurno = (turno) => {
-    setIsEditMode(true);
-    setEditingTurnoID(turno.turnoID);
-    setForm({
-      fecha: turno.fecha,
-      horaInicio: turno.horaInicio,
-      horaFin: turno.horaFin,
-      empleadoID: turno.empleado?.empleadoID || "",
-    });
-  };
-
-  const handleDeleteTurno = async (turnoID) => {
-    try {
-      await deleteTurno(turnoID);
-      alert("Turno eliminado exitosamente");
-      setTurnos((prev) => prev.filter((turno) => turno.turnoID !== turnoID));
-    } catch (error) {
-      console.error("Error al eliminar turno", error);
-      alert("Error al eliminar turno");
-    }
-  };
-
-  if (isLoading) {
-    return <p>Cargando datos...</p>;
-  }
 
   return (
     <div className="turnos-container">
-      {popupVisible && (
-    <div className="popup">
-      <p>{popupMessage}</p>
-      <button onClick={() => setPopupVisible(false)}>Cerrar</button>
-    </div>
-  )}
       <h1>Gestión de Turnos</h1>
-      <div className="calendar-container">
-        <Calendar onClickDay={handleDateChange} />
-      </div>
-      <div className="form-and-list">
+      <div className="turnos-content">
+        <div className="calendar-container">
+          <Calendar onClickDay={handleDateChange} />
+          {isModalVisible && (
+            <div className="modal">
+              <div className="modal-content">
+                <h2>Turnos del día {selectedDate?.toLocaleDateString()}</h2>
+                {selectedTurnos.length > 0 ? (
+                  <ul>
+                    {selectedTurnos.map((turno) => (
+                      <li key={turno.turnoID}>
+                        <p>
+                          <strong>Hora Inicio:</strong> {turno.horaInicio}{" "}
+                          <strong>Hora Fin:</strong> {turno.horaFin}
+                        </p>
+                        <p>
+                          <strong>Empleado:</strong> {turno.empleado?.nombre || "No asignado"}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No hay turnos para esta fecha.</p>
+                )}
+                <button onClick={closeModal}>Cerrar</button>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="form-container">
-          <h2>{isEditMode ? "Editar Turno" : "Crear Nuevo Turno"}</h2>
-          <form onSubmit={handleSubmit} className="turno-form">
+          <h2>Crear Nuevo Turno</h2>
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="fecha">Fecha:</label>
               <input
@@ -209,32 +159,9 @@ function Turnos() {
               </select>
             </div>
             <button type="submit" className="submit-button">
-              {isEditMode ? "Actualizar Turno" : "Crear Turno"}
+              Crear Turno
             </button>
           </form>
-        </div>
-        <div className="turnos-list">
-          <h2>Turnos del día {selectedDate?.toLocaleDateString() || "Sin seleccionar"}</h2>
-          {selectedTurnos.length > 0 ? (
-            <ul>
-              {selectedTurnos.map((turno) => (
-                <li key={turno.turnoID}>
-                  <p>
-                    <strong>Hora Inicio:</strong> {turno.horaInicio}{" "}
-                    <strong>Hora Fin:</strong> {turno.horaFin}
-                  </p>
-                  <p>
-                    <strong>Empleado:</strong>{" "}
-                    {turno.empleado ? turno.empleado.nombre : "No asignado"}
-                  </p>
-                  <button onClick={() => handleEditTurno(turno)}>Editar</button>
-                  <button onClick={() => handleDeleteTurno(turno.turnoID)}>Eliminar</button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No hay turnos para esta fecha.</p>
-          )}
         </div>
       </div>
     </div>
