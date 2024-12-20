@@ -2,14 +2,26 @@ import React, { useState, useEffect } from "react";
 import { createPedido } from "../services/pedido.service";
 import { getPlatos } from "../services/plato.service";
 import { getCliente } from "../services/cliente.service";
+import Cookies from "js-cookie";
 import { Link } from "react-router-dom";
+
+const payloadCookie = Cookies.get("payload");
+let payload = {};
+
+if (payloadCookie) {
+  try {
+    payload = JSON.parse(payloadCookie);
+  } catch (error) {
+    console.error("Error al parsear la cookie payload:", error);
+  }
+}
 
 const Pedido = () => {
   const [pedido, setPedido] = useState({
     clienteID: "",
-    empleadoID: "",
+    empleadoID: payload?.empleadoID || "",
     fecha: new Date().toISOString().slice(0, 10),
-    estado: "pendiente",
+    estado: "Pendiente", // Valor predeterminado según tu entidad
     total: 0,
   });
 
@@ -17,19 +29,31 @@ const Pedido = () => {
   const [platos, setPlatos] = useState([]);
   const [platosSeleccionados, setPlatosSeleccionados] = useState([]);
   const [error, setError] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const cargarDatos = async () => {
       try {
         const clientesData = await getCliente();
         const platosData = await getPlatos();
-        setClientes(clientesData);
+  
+        // Filtrar clientes con estado "disponible"
+        const clientesDisponibles = clientesData.filter(
+          (cliente) => cliente.estado === "disponible"
+        );
+  
+        // Ordenar los clientes disponibles por ID (opcional)
+        const clientesOrdenados = clientesDisponibles.sort(
+          (a, b) => a.clienteID - b.clienteID
+        );
+  
+        setClientes(clientesOrdenados);
         setPlatos(platosData);
       } catch (error) {
         console.error("Error cargando datos:", error);
       }
     };
-
+  
     cargarDatos();
   }, []);
 
@@ -83,11 +107,17 @@ const Pedido = () => {
       }
 
       console.log("Pedido(s) creado(s) con éxito");
+      setShowPopup(true);
+
+      setTimeout(() => {
+        setShowPopup(false);
+      }, 2000);
+
       setPedido({
         clienteID: "",
-        empleadoID: "",
+        empleadoID: payload?.empleadoID || "",
         fecha: new Date().toISOString().slice(0, 10),
-        estado: "pendiente",
+        estado: "Pendiente",
         total: 0,
       });
       setPlatosSeleccionados([]);
@@ -101,9 +131,16 @@ const Pedido = () => {
     <div style={styles.container}>
       <h1 style={styles.title}>Crear Pedido</h1>
       {error && <p style={styles.error}>{error}</p>}
+
+      {showPopup && (
+        <div style={styles.popup}>
+          <p>Pedido creado exitosamente 🎉</p>
+        </div>
+      )}
+
       <form onSubmit={(e) => e.preventDefault()} style={styles.form}>
         <div style={styles.inputGroup}>
-          <label style={styles.label}>Cliente:</label>
+          <label style={styles.label}>Mesa:</label>
           <select
             value={pedido.clienteID}
             onChange={(e) =>
@@ -114,12 +151,31 @@ const Pedido = () => {
             }
             style={styles.select}
           >
-            <option value="">Seleccione un cliente</option>
+            <option value="">Seleccione una mesa</option>
             {clientes.map((cliente) => (
               <option key={cliente.clienteID} value={cliente.clienteID}>
                 {cliente.nombre}
               </option>
             ))}
+          </select>
+        </div>
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Empleado:</label>
+          <input
+            type="text"
+            value={payload?.nombre || "Empleado no identificado"}
+            readOnly
+            style={styles.input}
+          />
+        </div>
+        <div style={styles.inputGroup}>
+          <label style={styles.label}>Estado:</label>
+          <select
+            value={pedido.estado}
+            onChange={(e) => setPedido({ ...pedido, estado: e.target.value })}
+            style={styles.select}
+          >
+            <option value="Pendiente">Pendiente</option>
           </select>
         </div>
         <div style={styles.inputGroup}>
@@ -151,26 +207,6 @@ const Pedido = () => {
               </li>
             ))}
           </ul>
-        </div>
-        <div style={styles.inputGroup}>
-          <label style={styles.label}>Empleado ID:</label>
-          <input
-            type="text"
-            value={pedido.empleadoID}
-            onChange={(e) =>
-              setPedido({ ...pedido, empleadoID: e.target.value })
-            }
-            style={styles.input}
-          />
-        </div>
-        <div style={styles.inputGroup}>
-          <label style={styles.label}>Estado:</label>
-          <input
-            type="text"
-            value={pedido.estado}
-            onChange={(e) => setPedido({ ...pedido, estado: e.target.value })}
-            style={styles.input}
-          />
         </div>
         <div style={styles.inputGroup}>
           <label style={styles.label}>Total:</label>
@@ -275,6 +311,20 @@ const styles = {
         textAlign: 'center',
         marginBottom: '10px',
     },
+    popup: {
+      position: "fixed",
+      top: "10%",
+      left: "50%",
+      transform: "translate(-50%, -10%)",
+      backgroundColor: "#4CAF50",
+      color: "white",
+      padding: "15px 30px",
+      borderRadius: "5px",
+      fontSize: "1.2rem",
+      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+      zIndex: 1000,
+      textAlign: "center",
+    }
 };
 
 export default Pedido;

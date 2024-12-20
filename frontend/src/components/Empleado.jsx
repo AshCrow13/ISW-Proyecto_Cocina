@@ -9,13 +9,21 @@ import {
 const Empleado = () => {
   const [empleados, setEmpleados] = useState([]);
   const [filteredEmpleados, setFilteredEmpleados] = useState([]);
-  const [formData, setFormData] = useState({ nombre: "", contacto: "", rol: "Mesero", email: "", password: "" });
+  const [formData, setFormData] = useState({
+    nombre: "",
+    contacto: "",
+    rol: "Mesero",
+    email: "",
+    password: "",
+  });
   const [editing, setEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [rolFilter, setRolFilter] = useState("Todos");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [errors, setErrors] = useState({});
+  const [focusMessage, setFocusMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const fetchEmpleados = async () => {
@@ -25,7 +33,7 @@ const Empleado = () => {
         setEmpleados(empleados);
         setFilteredEmpleados(empleados);
       } catch (e) {
-        setError("No se pudieron cargar los empleados.");
+        setErrorMessage("No se pudieron cargar los empleados.");
       } finally {
         setLoading(false);
       }
@@ -46,32 +54,33 @@ const Empleado = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" })); // Limpia el error del campo modificado
   };
 
   const validateForm = () => {
+    const newErrors = {};
+
     if (!formData.nombre.trim()) {
-      setError("El nombre es obligatorio.");
-      return false;
-    }
-    if (editing && formData.password === "") {
-      return true; // Permitir actualizaciones sin cambiar la contraseña
-    }
-    if (!formData.password.trim()) {
-      setError("La contraseña es obligatoria.");
-      return false;
+      newErrors.nombre = "El nombre es obligatorio.";
     }
     if (!formData.email.includes("@")) {
-      setError("El correo electrónico no es válido.");
-      return false;
+      newErrors.email = "El correo electrónico no es válido.";
     }
-    setError("");
-    return true;
+    if (!editing && !formData.password.trim()) {
+      newErrors.password = "La contraseña es obligatoria.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleCreate = async (e) => {
+  const handleCreateOrUpdate = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
     setLoading(true);
+    setSuccessMessage("");
+    setErrorMessage("");
 
     try {
       if (editing) {
@@ -82,18 +91,17 @@ const Empleado = () => {
         setFilteredEmpleados((prev) =>
           prev.map((emp) => (emp.empleadoID === editId ? updatedEmpleado : emp))
         );
+        setSuccessMessage("Empleado actualizado con éxito.");
         setEditing(false);
-        setSuccess("Empleado actualizado con éxito.");
       } else {
         const newEmpleado = await createEmpleado(formData);
         setEmpleados((prev) => [...prev, newEmpleado]);
         setFilteredEmpleados((prev) => [...prev, newEmpleado]);
-        setSuccess("Empleado creado con éxito.");
+        setSuccessMessage("Empleado creado con éxito.");
       }
       setFormData({ nombre: "", contacto: "", rol: "Mesero", email: "", password: "" });
-      setRolFilter("Todos");
     } catch (error) {
-      setError("No se pudo completar la acción. Verifica los datos.");
+      setErrorMessage("No se pudo completar la acción. Verifica los datos.");
     } finally {
       setLoading(false);
     }
@@ -110,31 +118,38 @@ const Empleado = () => {
     });
     setEditing(true);
     setEditId(id);
-    setSuccess("");
-    setError("");
+    setSuccessMessage("");
+    setErrorMessage("");
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("¿Estás seguro que deseas eliminar este empleado?");
-    if (confirmDelete) {
+    if (window.confirm("¿Estás seguro que deseas eliminar este empleado?")) {
+      setLoading(true);
       try {
-        setLoading(true);
         await deleteEmpleado(id);
         setEmpleados((prev) => prev.filter((emp) => emp.empleadoID !== id));
         setFilteredEmpleados((prev) => prev.filter((emp) => emp.empleadoID !== id));
-        setSuccess("Empleado eliminado con éxito.");
+        setSuccessMessage("Empleado eliminado con éxito.");
       } catch (error) {
-        setError("No se pudo eliminar el empleado.");
+        setErrorMessage("No se pudo eliminar el empleado.");
       } finally {
         setLoading(false);
       }
     }
   };
 
+  const handleFocus = (message) => {
+    setFocusMessage(message);
+  };
+
+  const handleBlur = () => {
+    setFocusMessage("");
+  };
+
   return (
     <div style={styles.container}>
       <h1 style={styles.header}>Gestión de Empleados</h1>
-      <form onSubmit={handleCreate} style={styles.form}>
+      <form onSubmit={handleCreateOrUpdate} style={styles.form}>
         <div style={styles.inputGroup}>
           <input
             type="text"
@@ -142,41 +157,54 @@ const Empleado = () => {
             value={formData.nombre}
             onChange={handleChange}
             placeholder="Nombre"
+            onFocus={() => handleFocus("Ingrese el nombre completo del empleado.")}
+            onBlur={handleBlur}
             style={styles.input}
-            required
           />
+          {errors.nombre && <p style={styles.error}>{errors.nombre}</p>}
+
           <input
             type="text"
             name="contacto"
             value={formData.contacto}
             onChange={handleChange}
             placeholder="Contacto"
+            onFocus={() => handleFocus("Ingrese un número de contacto válido.")}
+            onBlur={handleBlur}
             style={styles.input}
           />
+
           <input
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="Correo Electrónico"
+            placeholder="Correo Electrónico Único"
+            onFocus={() => handleFocus("Ingrese un correo electrónico válido, único para cada empleado.")}
+            onBlur={handleBlur}
             style={styles.input}
-            required
           />
+          {errors.email && <p style={styles.error}>{errors.email}</p>}
+
           <input
             type="password"
             name="password"
             value={formData.password}
             onChange={handleChange}
             placeholder="Contraseña"
+            onFocus={() => handleFocus("La contraseña debe tener al menos 8 caracteres, maximo 25.")}
+            onBlur={handleBlur}
             style={styles.input}
-            required
           />
+          {errors.password && <p style={styles.error}>{errors.password}</p>}
         </div>
         <div style={styles.inputGroup}>
           <select
             name="rol"
             value={formData.rol}
             onChange={handleChange}
+            onFocus={() => handleFocus("Seleccione el rol del empleado.")}
+            onBlur={handleBlur}
             style={styles.select}
           >
             <option value="Mesero">Mesero</option>
@@ -189,8 +217,9 @@ const Empleado = () => {
           </button>
         </div>
       </form>
-      {error && <p style={styles.error}>{error}</p>}
-      {success && <p style={styles.success}>{success}</p>}
+      {focusMessage && <p style={styles.focusMessage}>{focusMessage}</p>}
+      {successMessage && <p style={styles.success}>{successMessage}</p>}
+      {errorMessage && <p style={styles.error}>{errorMessage}</p>}
       {loading && <p style={styles.loading}>Cargando...</p>}
 
       <div style={styles.filterContainer}>
@@ -215,145 +244,53 @@ const Empleado = () => {
           </tr>
         </thead>
         <tbody>
-  {filteredEmpleados.map((empleado) => (
-    <tr key={empleado.empleadoID} style={styles.tr}>
-      <td style={styles.td}>{empleado.nombre}</td>
-      <td style={styles.td}>{empleado.email}</td>
-      <td style={styles.td}>{empleado.contacto}</td>
-      <td style={styles.td}>{empleado.rol}</td>
-      <td style={styles.td}>
-        <button onClick={() => handleEdit(empleado.empleadoID)} style={styles.editButton}>
-          Editar
-        </button>
-        <button onClick={() => handleDelete(empleado.empleadoID)} style={styles.deleteButton}>
-          Eliminar
-        </button>
-      </td>
-    </tr>
-  ))}
-</tbody>
+          {filteredEmpleados.map((empleado) => (
+            <tr key={empleado.empleadoID} style={styles.tr}>
+              <td style={styles.td}>{empleado.nombre}</td>
+              <td style={styles.td}>{empleado.email}</td>
+              <td style={styles.td}>{empleado.contacto}</td>
+              <td style={styles.td}>{empleado.rol}</td>
+              <td style={styles.td}>
+                <button
+                  onClick={() => handleEdit(empleado.empleadoID)}
+                  style={styles.editButton}
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleDelete(empleado.empleadoID)}
+                  style={styles.deleteButton}
+                >
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
       </table>
     </div>
   );
 };
 
 const styles = {
-  container: {
-    fontFamily: "Arial, sans-serif",
-    margin: "0 auto",
-    maxWidth: "1000px",
-    padding: "20px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "10px",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-  },
-  header: {
-    textAlign: "center",
-    color: "#333",
-    fontSize: "2.5em",
-    marginBottom: "20px",
-  },
-  form: {
-    marginBottom: "20px",
-  },
-  inputGroup: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
-    marginBottom: "10px",
-    justifyContent: "center",
-  },
-  input: {
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    flex: "1 1 200px",
-    fontSize: "1em",
-        background: 'none', // Limpia el fondo
-    backgroundImage: 'none', // Evita patrones de imagen
-    color: '#333', // Color del texto
-  },
-  select: {
-    padding: "10px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    flex: "1 1 200px",
-    fontSize: "1em",
-  },
-  button: {
-    padding: "10px 20px",
-    backgroundColor: "#28a745",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontSize: "1em",
-  },
-  filterContainer: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: "20px",
-  },
-  label: {
-    marginRight: "10px",
-    fontSize: "1em",
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    backgroundColor: "white",
-    borderRadius: "10px",
-    overflow: "hidden",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-  },
-  th: {
-    textAlign: "left",
-    padding: "15px",
-    backgroundColor: "#f2f2f2",
-    fontWeight: "bold",
-  },
-  td: {
-    padding: "15px",
-    borderBottom: "1px solid #ddd",
-  },
-  tr: {
-    "&:hover": {
-      backgroundColor: "#f1f1f1",
-    },
-  },
-  editButton: {
-    backgroundColor: "#007bff",
-    color: "white",
-    border: "none",
-    padding: "8px 15px",
-    borderRadius: "5px",
-    cursor: "pointer",
-    marginRight: "5px",
-  },
-  deleteButton: {
-    backgroundColor: "#dc3545",
-    color: "white",
-    border: "none",
-    padding: "8px 15px",
-    borderRadius: "5px",
-    cursor: "pointer",
-  },
-  error: {
-    color: "red",
-    textAlign: "center",
-    marginBottom: "10px",
-  },
-  success: {
-    color: "green",
-    textAlign: "center",
-    marginBottom: "10px",
-  },
-  loading: {
-    textAlign: "center",
-    marginBottom: "10px",
-    color: "#555",
-  },
+  container: { fontFamily: "Arial, sans-serif", margin: "0 auto", maxWidth: "1000px", padding: "20px" },
+  header: { textAlign: "center", fontSize: "2.5em", marginBottom: "20px" },
+  form: { marginBottom: "20px" },
+  inputGroup: { display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "10px" },
+  input: { padding: "10px", borderRadius: "5px", border: "1px solid #ccc", flex: "1 1 200px", background: 'none', // Limpia el fondo
+    backgroundImage: 'none' },
+  select: { padding: "10px", borderRadius: "5px", border: "1px solid #ccc", flex: "1 1 200px" },
+  button: { padding: "10px 20px", backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "5px" },
+  filterContainer: { display: "flex", justifyContent: "center", marginBottom: "20px" },
+  table: { width: "100%", borderCollapse: "collapse", margin: "20px 0" },
+  th: { background: "#f2f2f2", padding: "10px" },
+  td: { padding: "10px", textAlign: "center" },
+  editButton: { background: "#007bff", color: "white", border: "none", padding: "5px 10px" },
+  deleteButton: { background: "#dc3545", color: "white", border: "none", padding: "5px 10px" },
+  focusMessage: { textAlign: "center", color: "#555", marginBottom: "10px" },
+  success: { color: "green", textAlign: "center" },
+  error: { color: "red", textAlign: "center" },
+  loading: { textAlign: "center", color: "#555" },
 };
 
 export default Empleado;

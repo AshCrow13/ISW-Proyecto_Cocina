@@ -14,6 +14,7 @@ const ClienteSchema = new EntitySchema({
             type: "varchar",
             length: 100,
             nullable: false,
+            unique: true, // Restricción de unicidad
         },
         estado: {
             type: "enum",

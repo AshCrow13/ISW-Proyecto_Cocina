@@ -1,102 +1,96 @@
 "use strict";
-import Joi from "joi";
+import jwt from "jsonwebtoken";
+import { AppDataSource } from "../config/configDb.js";
+import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
+import Empleado from "../entity/Empleado.entity.js"; // Asegúrate de que la entidad Empleado esté correctamente definida
+import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js"; // Agregar el secreto para el refresh token
+import { REFRESH_TOKEN_SECRET } from "../config/configEnv.js"; // Agregar el secreto para el refresh token
 
-const domainEmailValidator = (value, helper) => {
-  if (!value.endsWith("@gmail.cl")) {
-    return helper.message(
-      "El correo electrónico debe finalizar en @gmail.cl."
-    );
+// Lógica para iniciar sesión
+export async function loginService(empleado) {
+  try {
+    console.log("ACCESS_TOKEN_SECRET:", ACCESS_TOKEN_SECRET);
+    console.log("REFRESH_TOKEN_SECRET:", REFRESH_TOKEN_SECRET);
+
+    if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
+      throw new Error("Faltan los secretos para generar los tokens JWT");
+    }
+
+    const empleadoRepository = AppDataSource.getRepository(Empleado);
+    const { email, password } = empleado;
+
+    const empleadoFound = await empleadoRepository.findOne({ where: { email } });
+
+    if (!empleadoFound) {
+      return [null, { field: "email", message: "El correo electrónico es incorrecto" }];
+    }
+
+    const isMatch = await comparePassword(password, empleadoFound.password);
+
+    if (!isMatch) {
+      return [null, { field: "password", message: "La contraseña es incorrecta" }];
+    }
+
+    // Creación del payload para el JWT
+    const payload = {
+      empleadoID: empleadoFound.empleadoID,
+      nombre: empleadoFound.nombre,
+      email: empleadoFound.email,
+      rut: empleadoFound.rut,
+      rol: empleadoFound.rol,
+    };
+
+    // Crear el access token
+    const accessToken = jwt.sign(payload, ACCESS_TOKEN_SECRET, {
+      expiresIn: "3d", // El token expira en 3 día
+    });
+
+    // Crear el refresh token para renovar el access token
+    const refreshToken = jwt.sign(payload, REFRESH_TOKEN_SECRET, {
+      expiresIn: "10d", // El refresh token expira en 10 días
+    });
+
+    return [{ accessToken, refreshToken, payload }, null];
+  } catch (error) {
+    console.error("Error al iniciar sesión:", error);
+    handleErrorServer(res, 500, "Error interno del servidor");
   }
-  return value;
-};
+}
 
-export const authValidation = Joi.object({
-  email: Joi.string()
-    .min(15)
-    .max(35)
-    .email()
-    .required()
-    .messages({
-      "string.empty": "El correo electrónico no puede estar vacío.",
-      "any.required": "El correo electrónico es obligatorio.",
-      "string.base": "El correo electrónico debe ser de tipo texto.",
-      "string.email": "El correo electrónico debe finalizar en @gmail.cl.",
-      "string.min": "El correo electrónico debe tener al menos 15 caracteres.",
-      "string.max": "El correo electrónico debe tener como máximo 35 caracteres.",
-    })
-    .custom(domainEmailValidator, "Validación dominio email"),
-  password: Joi.string()
-    .min(8)
-    .max(26)
-    .pattern(/^[a-zA-Z0-9]+$/)
-    .required()
-    .messages({
-      "string.empty": "La contraseña no puede estar vacía.",
-      "any.required": "La contraseña es obligatoria.",
-      "string.base": "La contraseña debe ser de tipo texto.",
-      "string.min": "La contraseña debe tener al menos 8 caracteres.",
-      "string.max": "La contraseña debe tener como máximo 26 caracteres.",
-      "string.pattern.base": "La contraseña solo puede contener letras y números.",
-    }),
-}).unknown(false).messages({
-  "object.unknown": "No se permiten propiedades adicionales.",
-});
+// Lógica para registrar un nuevo empleado
+export async function registerService(empleado) {
+  try {
+    const empleadoRepository = AppDataSource.getRepository(Empleado);
+    const { nombre, rut, email, password } = empleado;
 
-export const registerValidation = Joi.object({
-  nombre: Joi.string()
-    .min(15)
-    .max(50)
-    .pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/)
-    .required()
-    .messages({
-      "string.empty": "El nombre completo no puede estar vacío.",
-      "any.required": "El nombre completo es obligatorio.",
-      "string.base": "El nombre completo debe ser de tipo texto.",
-      "string.min": "El nombre completo debe tener al menos 15 caracteres.",
-      "string.max": "El nombre completo debe tener como máximo 50 caracteres.",
-      "string.pattern.base": "El nombre completo solo puede contener letras y espacios.",
-    }),
-    rut: Joi.string()
-    .min(9)
-    .max(12)
-    .required()
-    .pattern(/^(?:(?:[1-9]\d{0}|[1-2]\d{1})(\.\d{3}){2}|[1-9]\d{6}|[1-2]\d{7}|29\.999\.999|29999999)-[\dkK]$/)
-    .messages({
-      "string.empty": "El rut no puede estar vacío.",
-      "string.base": "El rut debe ser de tipo string.",
-      "string.min": "El rut debe tener como mínimo 9 caracteres.",
-      "string.max": "El rut debe tener como máximo 12 caracteres.",
-      "string.pattern.base": "Formato rut inválido, debe ser xx.xxx.xxx-x o xxxxxxxx-x.",
-    }),
-  email: Joi.string()
-    .min(15)
-    .max(35)
-    .email()
-    .required()
-    .messages({
-      "string.empty": "El correo electrónico no puede estar vacío.",
-      "any.required": "El correo electrónico es obligatorio.",
-      "string.base": "El correo electrónico debe ser de tipo texto.",
-      "string.email": "El correo electrónico debe finalizar en @gmail.cl.",
-      "string.min": "El correo electrónico debe tener al menos 15 caracteres.",
-      "string.max": "El correo electrónico debe tener como máximo 35 caracteres.",
-    })
-    .custom(domainEmailValidator, "Validación dominio email"),
-  password: Joi.string()
-    .min(8)
-    .max(26)
-    .pattern(/^[a-zA-Z0-9]+$/)
-    .required()
-    .messages({
-      "string.empty": "La contraseña no puede estar vacía.",
-      "any.required": "La contraseña es obligatorio.",
-      "string.base": "La contraseña debe ser de tipo texto.",
-      "string.min": "La contraseña debe tener al menos 8 caracteres.",
-      "string.max": "La contraseña debe tener como máximo 26 caracteres.",
-      "string.pattern.base": "La contraseña solo puede contener letras y números.",
-    }),
-})
-  .unknown(false)
-  .messages({
-  "object.unknown": "No se permiten propiedades adicionales.",
-});
+    // Verificar si el correo o el rut ya están en uso
+    const existingEmailEmpleado = await empleadoRepository.findOne({ where: { email } });
+    if (existingEmailEmpleado) {
+      return [null, { field: "email", message: "Correo electrónico en uso" }];
+    }
+
+    const existingRutEmpleado = await empleadoRepository.findOne({ where: { rut } });
+    if (existingRutEmpleado) {
+      return [null, { field: "rut", message: "Rut ya asociado a una cuenta" }];
+    }
+
+    // Crear un nuevo empleado
+    const hashedPassword = await encryptPassword(password);
+    const newEmpleado = empleadoRepository.create({
+      nombre,
+      email,
+      rut,
+      password: hashedPassword,
+      rol: "Empleado", // Puedes ajustar el rol según sea necesario
+    });
+
+    await empleadoRepository.save(newEmpleado);
+
+    // Retornar los datos del empleado, excluyendo la contraseña
+    const { password: pass, ...dataEmpleado } = newEmpleado;
+    return [dataEmpleado, null];
+  } catch (error) {
+    console.error("Error al registrar un empleado:", error);
+    return [null, { message: "Error interno del servidor" }];
+  }
+}

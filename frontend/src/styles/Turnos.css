@@ -1,55 +1,104 @@
-/* Estilos para el contenedor del calendario */
-.calendar-container {
+.turnos-container {
+  margin: 20px;
   display: flex;
-  justify-content: center; /* Centrado horizontal */
-  align-items: center; /* Centrado vertical */
-  padding: 10px;
+  flex-direction: column;
+  align-items: center;
 }
 
-.react-calendar {
-  width: 350px; /* Ajusta el ancho del calendario */
+.calendar-container {
+  margin-bottom: 20px;
+}
+
+.form-and-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+}
+
+.form-container,
+.turnos-list {
+  flex: 1 1 45%; /* Responsivo: Toma 45% del ancho en pantallas grandes */
   max-width: 100%;
-  background: #ffffff; /* Fondo blanco */
+  padding: 20px;
   border: 1px solid #dcdcdc;
   border-radius: 8px;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-  font-family: Arial, sans-serif;
 }
 
-.react-calendar__navigation {
+.turno-form {
   display: flex;
-  margin-bottom: 10px;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.react-calendar__navigation button {
-  color: #007bff;
-  min-width: 44px;
-  background: none;
-  font-size: 16px;
-  margin-top: 8px;
+.turnos-list ul {
+  list-style-type: none;
+  padding: 0;
 }
 
-.react-calendar__navigation button:enabled:hover,
-.react-calendar__navigation button:enabled:focus {
-  background-color: #e6f0ff; /* Color hover */
-}
-
-.react-calendar__month-view__days__day {
-  text-align: center;
-  font-size: 14px;
-}
-
-.react-calendar__tile {
+.turnos-list li {
+  margin-bottom: 15px;
   padding: 10px;
+  border: 1px solid #dcdcdc;
+  border-radius: 5px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px 15px;
+  border: none;
   border-radius: 4px;
+  cursor: pointer;
 }
 
-.react-calendar__tile--active {
-  background-color: #007bff;
-  color: red;
+button:hover {
+  opacity: 0.8;
 }
 
-.react-calendar__tile:enabled:hover,
-.react-calendar__tile:enabled:focus {
-  background-color: #e6f0ff;
+@media (max-width: 768px) {
+  .form-and-list {
+    flex-direction: column;
+  }
+
+  .form-container,
+  .turnos-list {
+    flex: 1 1 100%; /* Responsivo: Toma el 100% en pantallas pequeñas */
+  }
+}
+.popup {
+  position: fixed;
+  top: 50%; /* Centramos verticalmente */
+  left: 50%; /* Centramos horizontalmente */
+  transform: translate(-50%, -50%); /* Ajuste para el centrado */
+  background-color: #333; /* Fondo oscuro */
+  color: #fff; /* Texto claro */
+  padding: 10px 15px; /* Espaciado interno */
+  border: 1px solid #444; /* Borde oscuro */
+  border-radius: 8px; /* Bordes redondeados */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3); /* Sombra */
+  z-index: 1000;
+  font-size: 14px; /* Tamaño de letra */
+  text-align: center;
+  display: flex;
+  flex-direction: column; /* Alinear contenido verticalmente */
+  gap: 10px; /* Separación entre elementos */
+  width: 10px; /* Tamaño ajustado al contenido */
+  max-width: 90%; /* Evitar que sea demasiado ancho */
+  min-width: fit-content; /* Ajusta automáticamente al texto */
+  box-sizing: border-box;
+}
+
+.popup button {
+  background: #ff5555; /* Botón rojo */
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.popup button:hover {
+  background: #ff3333; /* Botón más intenso al hover */
 }

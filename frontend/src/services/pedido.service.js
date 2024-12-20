@@ -17,20 +17,20 @@ export const getPedidos = () => {
 }
 export async function updatePedido(id, pedidoData) {
   try {
-    const { data } = await axios.put(`${API_URL}/pedido/${id}`, pedidoData);
-    return data;
+      const { data } = await axios.put(`${API_URL}/pedido/${id}`, pedidoData);
+      return data;
   } catch (error) {
-    console.error("Error al actualizar pedido", error);
-    return null;
+      console.error("Error al actualizar pedido", error.message);
+      throw error;
   }
 }
 
 export async function deletePedido(id) {
   try {
-    const { data } = await axios.delete(`${API_URL}/pedido/${id}`);
-    return data;
+    const response = await axios.delete(`${API_URL}/pedido/${id}`);
+    return response.data;
   } catch (error) {
     console.error("Error al eliminar pedido", error);
-    return null;
+    throw error;
   }
 }

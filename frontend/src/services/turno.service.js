@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api/turnos";
+const API_URL = "http://localhost:3000/api/turno";
 
 export async function getTurnos() {
   try {
-    const { data } = await axios.get(API_URL);
+    const { data } = await axios.get(`${API_URL}/`);
     return data;
   } catch (error) {
     console.error("Error al obtener turnos", error);
