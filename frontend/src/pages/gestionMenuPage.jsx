@@ -25,6 +25,7 @@ const GestionMenuPage = () => {
       try {
         const platosData = await getPlatos();
         const ingredientesData = await getIngredientes();
+        console.log(ingredientesData);
         if (Array.isArray(platosData)) setPlatos(platosData);
         if (Array.isArray(ingredientesData)) setIngredientes(ingredientesData);
       } catch (error) {
