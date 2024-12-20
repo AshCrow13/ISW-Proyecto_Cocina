@@ -1,10 +1,10 @@
 "use strict";
 import jwt from "jsonwebtoken";
-import { AppDataSource } from "../config/configDb.js";
-import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
-import Empleado from "../entity/Empleado.entity.js"; // Asegúrate de que la entidad Empleado esté correctamente definida
-import { ACCESS_TOKEN_SECRET } from "../config/configEnv.js"; // Agregar el secreto para el refresh token
-import { REFRESH_TOKEN_SECRET } from "../config/configEnv.js"; // Agregar el secreto para el refresh token
+import { AppDataSource } from "../../../backend/src/config/configDb.js";
+import { comparePassword, encryptPassword } from "../../../backend/src/helpers/bcrypt.helper.js";
+import Empleado from "../../../backend/src/entity/Empleado.entity.js"; // Asegúrate de que la entidad Empleado esté correctamente definida
+import { ACCESS_TOKEN_SECRET } from "../../../backend/src/config/configEnv.js"; // Agregar el secreto para el refresh token
+import { REFRESH_TOKEN_SECRET } from "../../../backend/src/config/configEnv.js"; // Agregar el secreto para el refresh token
 
 // Lógica para iniciar sesión
 export async function loginService(empleado) {
