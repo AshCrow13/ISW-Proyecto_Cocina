@@ -1,0 +1,39 @@
+.ingrediente-form {
+    width: 50%;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+  }
+  
+  .ingrediente-form table {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .ingrediente-form td {
+    padding: 10px;
+  }
+  
+  .ingrediente-form input {
+    width: 400%;
+    padding: 8px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .ingrediente-form button {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .ingrediente-form button:hover {
+    background-color: #218838;
+  }
+  

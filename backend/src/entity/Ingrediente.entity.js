@@ -30,11 +30,11 @@ const IngredienteSchema = new EntitySchema({
     },
     relations: {
         inventario: {
-            target: "Inventario",
-            type: "many-to-one",
-            joinColumn: { name: "inventarioID" },
-            onDelete: "SET NULL",
-        },
+            target: "Inventario",  
+            type: "many-to-one",  
+            joinColumn: { name: "inventarioID" },  
+            onDelete: "SET NULL",  
+          },
     },
 });
 

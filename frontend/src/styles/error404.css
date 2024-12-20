@@ -1,0 +1,9 @@
+.omero {
+    width: 200px;
+    height: auto;
+    background: url('../assets/omero.png') no-repeat center center;
+    background-size: cover;
+    margin-top: 20px;
+    border-radius: 10px;
+  }
+  

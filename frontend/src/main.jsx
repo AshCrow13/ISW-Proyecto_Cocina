@@ -1,17 +1,17 @@
-import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Login from '@pages/Login';
-import Home from '@pages/Home';
-import Users from '@pages/Users';
-import Register from '@pages/Register';
-import Error404 from '@pages/Error404';
-import Root from '@pages/Root';
-import ProtectedRoute from '@components/ProtectedRoute.jsx';
-import '@styles/styles.css';
-import { AuthProvider } from './context/AuthContext.jsx';
-import './index.css';
-import App from './App.jsx'
-//import { SnackbarProvider } from './components/SnackbarContext.jsx';
+import ReactDOM from "react-dom/client";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Login from "@pages/Login";
+import Home from "@pages/Home";
+import Users from "@pages/Users";
+import Register from "@pages/Register";
+import Error404 from "@pages/Error404";
+import Root from "@pages/Root";
+import ProtectedRoute from "@components/ProtectedRoute.jsx";
+import "@styles/styles.css";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import "./index.css";
+import App from "./App.jsx";
+
 import Menu from '@components/Menu';
 import Ingrediente from '@components/Ingrediente';
 import Pedido from '@components/Pedido';
@@ -22,18 +22,19 @@ import VerPedidos from '@components/VerPedidos';
 import Perfil from '@components/Perfil';
 import GestionMenuPage from './pages/gestionMenuPage.jsx';
 import Empleado from './components/Empleado.jsx';
-//import Gestionmenu from '@components/GestionMenu.jsx';
-import Cliente from './components/Cliente.jsx';
+import Cliente from "./components/Cliente.jsx";
 
 const router = createBrowserRouter([
   {
-    path: '/',
+    path: "/",
     element: <Root />,
     errorElement: <Error404 />,
     children: [
-      { path: '/', element: <Home />, },
-      { path: '/users', element: (
-          <ProtectedRoute allowedRoles={['administrador']}>
+      { path: "/", element: <Home /> },
+      {
+        path: "/users",
+        element: (
+          <ProtectedRoute allowedRoles={["administrador"]}>
             <Users />
           </ProtectedRoute>
         ),
@@ -49,20 +50,19 @@ const router = createBrowserRouter([
       { path: '/gestionmenu', element: <GestionMenuPage /> },
       { path: '/empleados', element: <Empleado /> },
       { path: '/cliente', element: <Cliente/>}
-
     ],
   },
   {
-    path: '/auth',
+    path: "/auth",
     element: <Login />,
   },
   {
-    path: '/register',
+    path: "/register",
     element: <Register />,
   },
 ]);
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <RouterProvider router={router}>
     <AuthProvider>
       <App />
