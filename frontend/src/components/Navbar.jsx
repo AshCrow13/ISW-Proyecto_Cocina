@@ -76,13 +76,6 @@ const Navbar = () => {
     }
   };
 
-  // Función para manejar el logout
-  const handleLogout = () => {
-    Cookies.remove("payload"); // Eliminar la cookie 'payload'
-    setRol(null); // Limpiar el rol del estado
-    alert("Sesión cerrada"); // Mostrar un mensaje de logout
-  };
-
   return (
     <>
       <nav className="navbar">
@@ -153,7 +146,7 @@ const Navbar = () => {
               {/* Solo visible para estos roles */}
             </li>
           )}
-          {(rol === "JefeCocina" || rol === "A") && (
+          {(rol === "JefeCocina" || rol === "Administrador") && (
             <li>
               <Link to="/inventario"
               style={{ fontFamily: "Newsreader", fontSize: "1.4rem" }}

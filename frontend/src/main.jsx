@@ -13,11 +13,11 @@ import "./index.css";
 import App from "./App.jsx";
 
 import Menu from '@components/Menu';
-import Ingrediente from '@components/Ingrediente';
+import Ingrediente from './pages/IngredientePage.jsx';
 import Pedido from '@components/Pedido';
 import Proveedores from '@components/Proveedores';
 import Turnos from '@components/Turnos';
-import Inventario from '@components/Inventario';
+import Inventario from './pages/InventarioPage.jsx';
 import VerPedidos from '@components/VerPedidos';
 import Perfil from '@components/Perfil';
 import GestionMenuPage from './pages/gestionMenuPage.jsx';
