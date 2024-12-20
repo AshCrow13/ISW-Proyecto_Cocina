@@ -48,7 +48,7 @@ const platoController = {
             console.log("Ingrediente encontrado:", ingrediente);
 
             const platoIngredienteRepo = AppDataSource.getRepository(PlatoIngredienteSchema);
-            let platoIngrediente = platoIngredienteRepo.save({
+            let platoIngrediente = await platoIngredienteRepo.save({
                 platoID: nuevoPlato.platoID,
                 ingredienteID: ingrediente.ingredienteID
             });
@@ -114,21 +114,51 @@ const platoController = {
     update: async (req, res) => {
         try {
             const platoRepo = AppDataSource.getRepository(PlatoSchema);
+    
+            // Buscar el plato por ID
             console.log(req.params.id);
             const plato = await platoRepo.findOne({
-                where: { platoID: parseInt(req.params.id) }
-            }); // Cambiado a platoID
-            console.log(req.body);
+                where: { platoID: parseInt(req.params.id) },
+            });
+    
             if (!plato) {
                 return res.status(404).json({ message: "Plato no encontrado" });
             }
-            platoRepo.merge(req.param.id, req.body);
+    
+            console.log(req.body);
+    
+            // Actualizar manualmente los campos
+            const { nombre, descripcion, precio, disponibilidad, ingredienteID } = req.body;
+    
+            if (nombre !== undefined) plato.nombre = nombre;
+            if (descripcion !== undefined) plato.descripcion = descripcion;
+            if (precio !== undefined) plato.precio = precio;
+            if (disponibilidad !== undefined) plato.disponibilidad = disponibilidad;
+            if (ingredienteID !== undefined) {
+                const platoIngredienteRepo = AppDataSource.getRepository(PlatoIngredienteSchema);
+            
+                // Eliminar relaciones existentes
+                await platoIngredienteRepo.delete({ platoID: plato.platoID });
+            
+                // Insertar nuevas relaciones
+                for (const id of ingredienteID) {
+                    await platoIngredienteRepo.save({
+                        platoID: plato.platoID,
+                        ingredienteID: id,
+                    });
+                }
+            }
+    
+            // Guardar el plato actualizado
             const result = await platoRepo.save(plato);
+    
             res.status(200).json(result);
         } catch (error) {
+            console.error("Error al actualizar plato:", error);
             res.status(500).json({ message: error.message });
         }
     },
+    
 
     delete: async (req, res) => {
         try {

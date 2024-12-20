@@ -32,25 +32,23 @@ async function setupServer() {
     app.use(urlencoded({ extended: true, limit: "1mb" }));
     app.use(json({ limit: "1mb" }));
 
-    // Configuración de cookies y sesión
-    app.use(cookieParser());
-    app.use(
-      session({
-        secret: cookieKey,
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-          secure: false, // Usar 'true' si tienes HTTPS configurado
-          httpOnly: true,
-          sameSite: "strict",
-        },
-      }),
-    );
-
-    // Configuración de Passport para manejar la autenticación (JWT, sessions, etc.)
-    app.use(passport.initialize());
-    app.use(passport.session());
-    passportJwtSetup(); // Setup de Passport para JWT
+        // Configuración de cookies y sesión
+        app.use(cookieParser());
+        app.use(session({
+            secret: cookieKey,
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                secure: false,  // Usar 'true' si tienes HTTPS configurado
+                httpOnly: true,
+                sameSite: "strict",
+            },
+        }));
+        
+        // Configuración de Passport para manejar la autenticación (JWT, sessions, etc.)
+        app.use(passport.initialize());
+        app.use(passport.session());
+        passportJwtSetup();  // Setup de Passport para JWT
 
     // Middleware de logging
     app.use(morgan("dev"));

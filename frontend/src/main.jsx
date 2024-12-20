@@ -11,18 +11,17 @@ import "@styles/styles.css";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import "./index.css";
 import App from "./App.jsx";
-//import { SnackbarProvider } from './components/SnackbarContext.jsx';
-import Menu from "@components/Menu";
-import IngredientePage from "@pages/IngredientePage";
-import Pedido from "@components/Pedido";
-import Proveedores from "@components/Proveedores";
-//import Turnos from '@components/Turnos';
-import InventarioPage from "@pages/InventarioPage";
-import VerPedidos from "@components/VerPedidos";
-import Perfil from "@components/Perfil";
-import GestionMenuPage from "./pages/gestionMenuPage.jsx";
-import Empleado from "./components/Empleado.jsx";
-//import Gestionmenu from '@components/GestionMenu.jsx';
+
+import Menu from '@components/Menu';
+import Ingrediente from '@components/Ingrediente';
+import Pedido from '@components/Pedido';
+import Proveedores from '@components/Proveedores';
+import Turnos from '@components/Turnos';
+import Inventario from '@components/Inventario';
+import VerPedidos from '@components/VerPedidos';
+import Perfil from '@components/Perfil';
+import GestionMenuPage from './pages/gestionMenuPage.jsx';
+import Empleado from './components/Empleado.jsx';
 import Cliente from "./components/Cliente.jsx";
 
 const router = createBrowserRouter([
@@ -40,17 +39,17 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      { path: "/menu", element: <Menu /> },
-      { path: "/ingrediente", element: <IngredientePage /> },
-      { path: "/pedidos", element: <Pedido /> },
-      { path: "/proveedor", element: <Proveedores /> },
-      //      { path: '/turnos', element: <Turnos /> },
-      { path: "/inventario", element: <InventarioPage /> },
-      { path: "/verpedidos", element: <VerPedidos /> },
-      { path: "/perfil", element: <Perfil /> },
-      { path: "/gestionmenu", element: <GestionMenuPage /> },
-      { path: "/empleados", element: <Empleado /> },
-      { path: "/cliente", element: <Cliente /> },
+      { path: '/menu', element: <Menu /> },
+      { path: '/ingrediente', element: <Ingrediente /> },
+      { path: '/pedidos', element: <Pedido /> },
+      { path: '/proveedor', element: <Proveedores /> },
+      { path: '/turnos', element: <Turnos /> },
+      { path: '/inventario', element: <Inventario /> },
+      { path: '/verpedidos', element: <VerPedidos /> },
+      { path: '/perfil', element: <Perfil /> },
+      { path: '/gestionmenu', element: <GestionMenuPage /> },
+      { path: '/empleados', element: <Empleado /> },
+      { path: '/cliente', element: <Cliente/>}
     ],
   },
   {

@@ -17,9 +17,8 @@ if (payloadCookie) {
 const Perfil = () => {
   // Simulando datos de logeo
   const userData = {
-    nombre: payload.nombreCompleto || "No disponible",
+    nombre: payload.nombre || "No disponible",
     email: payload.email || "No disponible",
-    rut: payload.rut || "No disponible",
     rol: payload.rol || "No disponible",
   };
 
@@ -62,9 +61,6 @@ const Perfil = () => {
         </p>
         <p style={{ margin: "10px 0", fontSize: "1rem", color: "#555" }}>
           <strong style={{ color: "#333" }}>Email:</strong> {userData.email}
-        </p>
-        <p style={{ margin: "10px 0", fontSize: "1rem", color: "#555" }}>
-          <strong style={{ color: "#333" }}>RUT:</strong> {userData.rut}
         </p>
         <p style={{ margin: "10px 0", fontSize: "1rem", color: "#555" }}>
           <strong style={{ color: "#333" }}>Rol:</strong> {userData.rol}

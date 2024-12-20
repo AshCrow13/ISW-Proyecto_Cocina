@@ -24,21 +24,24 @@ export async function getEmpleadoById(id) {
 
 export async function createEmpleado(empleadoData) {
   try {
-    const { data } = await axios.post(`${API_URL}/empleado/`, empleadoData);
+    console.log("Datos enviados al servidor:", empleadoData); // Log para verificar los datos enviados
+    const { data } = await axios.post(`/empleado/`, empleadoData);
+
     return data;
   } catch (error) {
-    console.error("Error al crear empleado", error);
-    return error.response?.data || { message: "Error al crear empleado", status: 500 };
+    console.error("Error al crear empleado", error.response?.data || error.message);
+    throw error; // Asegúrate de manejar el error en el componente React
   }
 }
 
 export async function updateEmpleado(id, empleadoData) {
   try {
     const { data } = await axios.put(`${API_URL}/empleado/${id}`, empleadoData);
+    
     return data;
   } catch (error) {
-    console.error("Error al actualizar empleado", error);
-    return error.response?.data || { message: "Error al actualizar empleado", status: 500 };
+    console.error("Error al actualizar empleado", error.response?.data || error.message);
+    throw error;
   }
 }
 

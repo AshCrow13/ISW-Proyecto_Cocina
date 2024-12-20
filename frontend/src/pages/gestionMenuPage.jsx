@@ -8,7 +8,7 @@ import { getIngredientes } from "../services/ingrediente.service";
 const GestionMenuPage = () => {
   const [platos, setPlatos] = useState([]); // Lista de platos
   const [ingredientes, setIngredientes] = useState([]); // Lista de ingredientes
-  const [ingredientesCheck, setIngredientesCheck] = useState([]); // Ingredientes seleccionados
+  const [ingredientesCheck, setingredientesCheck] = useState([]); // Ingredientes seleccionados
   const [newPlato, setNewPlato] = useState({
     nombre: "",
     descripcion: "",
@@ -25,70 +25,91 @@ const GestionMenuPage = () => {
       try {
         const platosData = await getPlatos();
         const ingredientesData = await getIngredientes();
-        setPlatos(platosData);
-        setIngredientes(ingredientesData);
+        if (Array.isArray(platosData)) setPlatos(platosData);
+        if (Array.isArray(ingredientesData)) setIngredientes(ingredientesData);
       } catch (error) {
         console.error("Error al cargar datos:", error);
-        //showSnackbar("Error al cargar los datos", "error");
       }
     }
     fetchData();
   }, []);
 
+  const updateFetchData = async () => {
+    try {
+      const platosData = await getPlatos();
+      const ingredientesData = await getIngredientes();
+      if (Array.isArray(platosData)) setPlatos(platosData);
+      if (Array.isArray(ingredientesData)) setIngredientes(ingredientesData);
+    } catch (error) {
+      console.error("Error al cargar los datos:", error);
+    }
+  };
+
   // Enviar formulario: crear o actualizar un plato
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (ingredientesCheck.length === 0) {
+    // Validar que haya al menos un ingrediente seleccionado
+    if (!ingredientesCheck || ingredientesCheck.length === 0) {
       //showSnackbar("Debes seleccionar al menos un ingrediente.", "error");
       return;
     }
 
-    try {
-      const platoData = { ...newPlato, ingredienteID: ingredientesCheck };
+    if (!newPlato.nombre || !newPlato.descripcion || newPlato.precio <= 0) {
+      //showSnackbar("Por favor, completa todos los campos correctamente.", "error");
+      return;
+    }
 
+    newPlato.ingredienteID = ingredientesCheck;
+
+    try {
       if (editPlato) {
-        await updatePlato(editPlato.platoID, platoData);
-        //showSnackbar("Plato actualizado correctamente.", "success");
+        // Actualizar plato
+        const updatedPlato = await updatePlato(editPlato.platoID, newPlato);
+        if (updatedPlato?.platoID) {
+          //showSnackbar("Plato actualizado correctamente.", "success");
+          updateFetchData();
+        }
+        setEditPlato(null);
       } else {
-        await createPlato(platoData);
-        //showSnackbar("Plato creado correctamente.", "success");
+        // Crear nuevo plato
+        const data = await createPlato(newPlato);
+        //showSnackbar("Plato creado exitosamente", "success");
+        setPlatos([...platos, data]);
+        updateFetchData();
       }
 
-      // Actualizar lista de platos y reiniciar formulario
-      const updatedPlatos = await getPlatos();
-      setPlatos(updatedPlatos);
-      resetForm();
+      // Reiniciar el formulario
+      setNewPlato({
+        nombre: "",
+        descripcion: "",
+        precio: 0,
+        disponibilidad: true,
+        ingredienteID: [],
+      });
+      setingredientesCheck([]);
     } catch (error) {
       console.error("Error al guardar el plato:", error);
-      //showSnackbar("Error al guardar el plato.", "error");
+      //showSnackbar("Ocurrió un error al guardar el plato. Inténtalo de nuevo.", "error");
     }
-  };
-
-  const resetForm = () => {
-    setNewPlato({
-      nombre: "",
-      descripcion: "",
-      precio: 0,
-      disponibilidad: true,
-      ingredienteID: [],
-    });
-    setIngredientesCheck([]);
-    setEditPlato(null);
   };
 
   // Editar un plato
   const handleEdit = (plato) => {
     setEditPlato(plato);
     setNewPlato({
+      platoID: plato.platoID,
       nombre: plato.nombre,
       descripcion: plato.descripcion,
       precio: plato.precio,
       disponibilidad: plato.disponibilidad,
+      ingredienteID: plato.ingredienteID,
     });
-    setIngredientesCheck(plato.ingredienteID || []);
+    setingredientesCheck([...plato.ingredienteID]);
   };
 
+
+  
   // Eliminar un plato
   const handleDelete = async (id) => {
     if (window.confirm("¿Estás seguro de eliminar este plato?")) {
@@ -104,12 +125,17 @@ const GestionMenuPage = () => {
   };
 
   // Seleccionar o deseleccionar ingredientes
-  const handleSelectIngrediente = (ingrediente) => {
-    setIngredientesCheck((prev) =>
-      prev.includes(ingrediente)
-        ? prev.filter((i) => i !== ingrediente)
-        : [...prev, ingrediente]
-    );
+  const handleSelectIngrediente = (ingredienteSeleccionado) => {
+    setingredientesCheck((prevIngredientesCheck) => {
+      const yaSeleccionado = prevIngredientesCheck.some(
+        (ingrediente) => ingrediente.ingredienteID === ingredienteSeleccionado.ingredienteID
+      );
+      return yaSeleccionado
+        ? prevIngredientesCheck.filter(
+            (ingrediente) => ingrediente.ingredienteID !== ingredienteSeleccionado.ingredienteID
+          )
+        : [...prevIngredientesCheck, ingredienteSeleccionado];
+    });
   };
 
   // Renderizado de la página

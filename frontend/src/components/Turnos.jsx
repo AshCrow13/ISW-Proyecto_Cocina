@@ -3,6 +3,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import { getTurnos, createTurno } from "../services/turno.service";
 import { getEmpleado } from "../services/empleado.service";
+import "../styles/Turnos.css"; // Importa el archivo CSS
 
 function Turnos() {
   const [turnos, setTurnos] = useState([]);
@@ -17,7 +18,6 @@ function Turnos() {
     empleadoID: "",
   });
 
-  // Cargar turnos y empleados al montar el componente
   useEffect(() => {
     async function fetchData() {
       const turnosData = await getTurnos();
@@ -29,7 +29,6 @@ function Turnos() {
     fetchData();
   }, []);
 
-  // Manejar selección de fecha en el calendario
   const handleDateChange = (date) => {
     setSelectedDate(date);
     const formattedDate = date.toISOString().split("T")[0];
@@ -38,37 +37,30 @@ function Turnos() {
     setIsModalVisible(true);
   };
 
-  // Cerrar el modal
   const closeModal = () => {
     setIsModalVisible(false);
     setSelectedDate(null);
     setSelectedTurnos([]);
   };
 
-  // Manejar cambios en el formulario
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Manejar el envío del formulario para crear un turno
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newTurno = {
       fecha: form.fecha,
       horaInicio: form.horaInicio,
       horaFin: form.horaFin,
-      empleado: { empleadoID: parseInt(form.empleadoID) }, // Convertir a número
+      empleado: { empleadoID: parseInt(form.empleadoID) },
     };
 
     try {
       const createdTurno = await createTurno(newTurno);
       alert("Turno creado exitosamente");
-
-      // Actualizar la lista de turnos sin recargar
       setTurnos((prev) => [...prev, createdTurno]);
-
-      // Reiniciar el formulario
       setForm({
         fecha: "",
         horaInicio: "",
@@ -82,85 +74,96 @@ function Turnos() {
   };
 
   return (
-    <div>
+    <div className="turnos-container">
       <h1>Gestión de Turnos</h1>
-      <Calendar onClickDay={handleDateChange} />
-      {isModalVisible && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Turnos del día {selectedDate?.toLocaleDateString()}</h2>
-            {selectedTurnos.length > 0 ? (
-              <ul>
-                {selectedTurnos.map((turno) => (
-                  <li key={turno.turnoID}>
-                    <p>
-                      <strong>Hora Inicio:</strong> {turno.horaInicio}{" "}
-                      <strong>Hora Fin:</strong> {turno.horaFin}
-                    </p>
-                    <p>
-                      <strong>Empleado:</strong> {turno.empleado?.nombre || "No asignado"}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No hay turnos para esta fecha.</p>
-            )}
-            <button onClick={closeModal}>Cerrar</button>
-          </div>
+      <div className="turnos-content">
+        <div className="calendar-container">
+          <Calendar onClickDay={handleDateChange} />
+          {isModalVisible && (
+            <div className="modal">
+              <div className="modal-content">
+                <h2>Turnos del día {selectedDate?.toLocaleDateString()}</h2>
+                {selectedTurnos.length > 0 ? (
+                  <ul>
+                    {selectedTurnos.map((turno) => (
+                      <li key={turno.turnoID}>
+                        <p>
+                          <strong>Hora Inicio:</strong> {turno.horaInicio}{" "}
+                          <strong>Hora Fin:</strong> {turno.horaFin}
+                        </p>
+                        <p>
+                          <strong>Empleado:</strong> {turno.empleado?.nombre || "No asignado"}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No hay turnos para esta fecha.</p>
+                )}
+                <button onClick={closeModal}>Cerrar</button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-
-      <h2>Crear Nuevo Turno</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Fecha:
-          <input
-            type="date"
-            name="fecha"
-            value={form.fecha}
-            onChange={handleFormChange}
-            required
-          />
-        </label>
-        <label>
-          Hora Inicio:
-          <input
-            type="time"
-            name="horaInicio"
-            value={form.horaInicio}
-            onChange={handleFormChange}
-            required
-          />
-        </label>
-        <label>
-          Hora Fin:
-          <input
-            type="time"
-            name="horaFin"
-            value={form.horaFin}
-            onChange={handleFormChange}
-            required
-          />
-        </label>
-        <label>
-          Empleado:
-          <select
-            name="empleadoID"
-            value={form.empleadoID}
-            onChange={handleFormChange}
-            required
-          >
-            <option value="">Seleccione un empleado</option>
-            {empleados.map((empleado) => (
-              <option key={empleado.empleadoID} value={empleado.empleadoID}>
-                {empleado.nombre}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit">Crear Turno</button>
-      </form>
+        <div className="form-container">
+          <h2>Crear Nuevo Turno</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="fecha">Fecha:</label>
+              <input
+                type="date"
+                id="fecha"
+                name="fecha"
+                value={form.fecha}
+                onChange={handleFormChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="horaInicio">Hora Inicio:</label>
+              <input
+                type="time"
+                id="horaInicio"
+                name="horaInicio"
+                value={form.horaInicio}
+                onChange={handleFormChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="horaFin">Hora Fin:</label>
+              <input
+                type="time"
+                id="horaFin"
+                name="horaFin"
+                value={form.horaFin}
+                onChange={handleFormChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="empleadoID">Empleado:</label>
+              <select
+                id="empleadoID"
+                name="empleadoID"
+                value={form.empleadoID}
+                onChange={handleFormChange}
+                required
+              >
+                <option value="">Seleccione un empleado</option>
+                {empleados.map((empleado) => (
+                  <option key={empleado.empleadoID} value={empleado.empleadoID}>
+                    {empleado.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button type="submit" className="submit-button">
+              Crear Turno
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

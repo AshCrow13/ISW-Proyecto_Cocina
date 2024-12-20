@@ -51,6 +51,7 @@ const clienteController = {
             res.status(500).json({ message: error.message });
         }
     },
+    
 
     delete: async (req, res) => {
         try {
