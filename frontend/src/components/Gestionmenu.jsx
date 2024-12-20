@@ -28,14 +28,21 @@ const GestionMenu = () => {
       try {
         const platosData = await getPlatos();
         const ingredientesData = await getIngredientes();
-        if (Array.isArray(platosData)) setPlatos(platosData);
-        if (Array.isArray(ingredientesData)) setIngredientes(ingredientesData);
-      } catch (error) {
-        console.error("Error al cargar datos:", error);
+        if (Array.isArray(platosData)) {
+          setPlatos(platosData);
+        }
+        if (ingredientesData?.data && Array.isArray(ingredientesData.data)) {
+          setIngredientes(ingredientesData.data); // Extrae 'data'
+        console.log("Ingredientes cargados:", ingredientesData);
+      } else {
+        console.error("Estructura inesperada en ingredientesData:", ingredientesData);
       }
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
     }
-    fetchData();
-  }, []);
+  }
+  fetchData();
+}, []);
 
   const updateFetchData = async () => {
     try {
@@ -210,6 +217,7 @@ const GestionMenu = () => {
         </div>
         <div>
           <label className="block text-gray-700 mb-1">Ingredientes</label>
+          
           {/* Contenedor desplazable */}
           <div className="border p-2 rounded h-40 overflow-y-scroll">
             {ingredientes.map((ingrediente) => (
