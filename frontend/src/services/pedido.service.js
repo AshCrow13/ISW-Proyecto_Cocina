@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = "http://146.83.198.35:1326/api";
 
 export const getPedidos = () => {
     return axios.get(`${API_URL}/pedido`);

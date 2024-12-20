@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api"; // Ajusta según tu configuración
+const API_URL = "http://146.83.198.35:1326//api"; // Ajusta según tu configuración
 
 export async function getCliente() {
   try {
