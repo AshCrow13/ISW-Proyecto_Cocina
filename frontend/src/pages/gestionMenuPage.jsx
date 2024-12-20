@@ -3,6 +3,7 @@ import PlatoForm from "../components/platoForm.jsx";
 import PlatoTable from "../components/platoTable.jsx";
 import { getPlatos, createPlato, updatePlato, deletePlato } from "../services/plato.service";
 import { getIngredientes } from "../services/ingrediente.service";
+import { showErrorAlert, showSuccessAlert, deleteDataAlert } from "../helpers/sweetAlert.js";
 //import { useSnackbar } from "../components/SnackbarContext";
 
 const GestionMenuPage = () => {
@@ -58,12 +59,12 @@ const GestionMenuPage = () => {
 
     // Validar que haya al menos un ingrediente seleccionado
     if (!ingredientesCheck || ingredientesCheck.length === 0) {
-      //showSnackbar("Debes seleccionar al menos un ingrediente.", "error");
+      showErrorAlert("Error","Debes seleccionar al menos un ingrediente.");
       return;
     }
 
     if (!newPlato.nombre || !newPlato.descripcion || newPlato.precio <= 0) {
-      //showSnackbar("Por favor, completa todos los campos correctamente.", "error");
+      showErrorAlert("Error","Por favor, completa todos los campos correctamente.");
       return;
     }
 
@@ -74,14 +75,14 @@ const GestionMenuPage = () => {
         // Actualizar plato
         const updatedPlato = await updatePlato(editPlato.platoID, newPlato);
         if (updatedPlato?.platoID) {
-          //showSnackbar("Plato actualizado correctamente.", "success");
+          showSuccessAlert("Listo!", "Plato actualizado correctamente.");
           updateFetchData();
         }
         setEditPlato(null);
       } else {
         // Crear nuevo plato
         const data = await createPlato(newPlato);
-        //showSnackbar("Plato creado exitosamente", "success");
+        showSuccessAlert("Listo!","Plato creado exitosamente");
         setPlatos([...platos, data]);
         updateFetchData();
       }
@@ -97,7 +98,7 @@ const GestionMenuPage = () => {
       setingredientesCheck([]);
     } catch (error) {
       console.error("Error al guardar el plato:", error);
-      //showSnackbar("Ocurrió un error al guardar el plato. Inténtalo de nuevo.", "error");
+      showErrorAlert("Error", "Ocurrió un error al guardar el plato. Inténtalo de nuevo.");
     }
   };
 
@@ -119,14 +120,15 @@ const GestionMenuPage = () => {
   
   // Eliminar un plato
   const handleDelete = async (id) => {
-    if (window.confirm("¿Estás seguro de eliminar este plato?")) {
+    const result = await deleteDataAlert();
+    if (result.isConfirmed) {
       try {
         await deletePlato(id);
         setPlatos(platos.filter((plato) => plato.platoID !== id));
-        //showSnackbar("Plato eliminado correctamente.", "success");
+        showSuccessAlert("Listo!", "Plato eliminado correctamente.");
       } catch (error) {
         console.error("Error al eliminar el plato:", error);
-        //showSnackbar("Error al eliminar el plato.", "error");
+        showErrorAlert("error", "Error al eliminar el plato.");
       }
     }
   };
